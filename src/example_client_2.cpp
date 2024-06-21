@@ -1,3 +1,11 @@
+//example_client_2.cpp
+//
+//This file implements an example client that connects to the RiskServer and sends
+//various types of messages including new orders, trade confirmations, and delete orders.
+//
+//Author: Nikas Zilinskis
+//Date: 19/06/2024
+
 #include "client.h"
 #include "order.h"
 #include <iostream>
@@ -10,7 +18,7 @@ void send_orders() {
     Client trade_client("127.0.0.1", 55556);
 
     if (!order_client.connect_to_server() || !trade_client.connect_to_server()) {
-        std::cerr << "Failed to connect to server!" << std::endl;
+        std::cerr << "Failed to connect to server!\n";
         return;
     }
 
@@ -28,9 +36,9 @@ void send_orders() {
         OrderResponse response;
         memcpy(&response, response_buffer, sizeof(OrderResponse));
         if (response.stat == OrderResponse::Status::ACCEPTED) {
-            std::cout << "Order accepted." << std::endl;
+            std::cout << "Order accepted.\n";
         } else {
-            std::cout << "Order rejected." << std::endl;
+            std::cout << "Order rejected.\n";
         }
     }
 
@@ -45,9 +53,9 @@ void send_orders() {
         OrderResponse response;
         memcpy(&response, response_buffer, sizeof(OrderResponse));
         if (response.stat == OrderResponse::Status::ACCEPTED) {
-            std::cout << "Order accepted." << std::endl;
+            std::cout << "Order accepted.\n";
         } else {
-            std::cout << "Order rejected." << std::endl;
+            std::cout << "Order rejected.\n";
         }
     }
 
@@ -62,9 +70,9 @@ void send_orders() {
         OrderResponse response;
         memcpy(&response, response_buffer, sizeof(OrderResponse));
         if (response.stat == OrderResponse::Status::ACCEPTED) {
-            std::cout << "Order accepted." << std::endl;
+            std::cout << "Order accepted.\n";
         } else {
-            std::cout << "Order rejected." << std::endl;
+            std::cout << "Order rejected.\n";
         }
     }
 
@@ -79,9 +87,9 @@ void send_orders() {
         OrderResponse response;
         memcpy(&response, response_buffer, sizeof(OrderResponse));
         if (response.stat == OrderResponse::Status::ACCEPTED) {
-            std::cout << "Order accepted." << std::endl;
+            std::cout << "Order accepted.\n";
         } else {
-            std::cout << "Order rejected." << std::endl;
+            std::cout << "Order rejected.\n";
         }
     }
 
@@ -106,13 +114,13 @@ void send_orders() {
         OrderResponse response;
         memcpy(&response, response_buffer, sizeof(OrderResponse));
         if (response.stat == OrderResponse::Status::ACCEPTED) {
-            std::cout << "Delete order accepted." << std::endl;
+            std::cout << "Delete order accepted.\n";
         } else {
-            std::cout << "Delete order rejected." << std::endl;
+            std::cout << "Delete order rejected.\n";
         }
     }
 
-    //New Order: ID 3, Instrument: Other Stock, Buy 4 units at 1.5
+    // New Order: ID 3, Instrument: Other Stock, Buy 15 units at 1.5
     NewOrder new_order5 = {NewOrder::MESSAGE_TYPE, 2, 3, 15, 150, 'B'};
     Header header5 = {1, sizeof(new_order5), 3, 0};
     memcpy(buffer, &header5, sizeof(header5));
@@ -123,9 +131,9 @@ void send_orders() {
         OrderResponse response;
         memcpy(&response, response_buffer, sizeof(OrderResponse));
         if (response.stat == OrderResponse::Status::ACCEPTED) {
-            std::cout << "Order accepted." << std::endl;
+            std::cout << "Order accepted.\n";
         } else {
-            std::cout << "Order rejected." << std::endl;
+            std::cout << "Order rejected.\n";
         }
     }
 }

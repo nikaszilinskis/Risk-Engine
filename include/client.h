@@ -1,9 +1,9 @@
-// client.h
+//client.h
 //
-// This header file defines a simple client class for testing the RiskServer.
+//This header file defines a simple client class for testing the RiskServer.
 //
-// Author: Nikas Zilinskis
-// Date: 18/06/2024
+//Author: Nikas Zilinskis
+//Date: 19/06/2024
 
 #ifndef CLIENT_H_
 #define CLIENT_H_
@@ -19,13 +19,10 @@ public:
     Client(const std::string& server_ip, int server_port);
     ~Client();
 
-    // Connects to the server
     bool connect_to_server();
 
-    // Sends a message to the server
     bool send_message(const char* message, size_t size);
 
-    // Receives a response from the server
     bool receive_response(char* buffer, size_t size);
 
 private:
@@ -35,4 +32,4 @@ private:
     sockaddr_in server_addr_;
 };
 
-#endif // CLIENT_H_
+#endif 

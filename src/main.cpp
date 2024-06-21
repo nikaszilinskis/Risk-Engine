@@ -1,9 +1,9 @@
-// main.cpp
+//main.cpp
 //
-// This file contains the main function which starts the RiskServer.
+//This file contains the main function which starts the RiskServer.
 //
-// Author: Nikas Zilinskis
-// Date: 18/06/2024
+//Author: Nikas Zilinskis
+//Date: 18/06/2024
 
 #include "server.h"
 #include <iostream>
@@ -11,7 +11,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <max_buy_position> <max_sell_position>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <max_buy_position> <max_sell_position>\n";
         return -1;
     }
 
@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     RiskServer server(max_buy_position, max_sell_position);
 
     if (!server.init()) {
-        std::cerr << "Failed to initialize the server!" << std::endl;
+        std::cerr << "Failed to initialize the server!\n";
         return -1;
     }
 

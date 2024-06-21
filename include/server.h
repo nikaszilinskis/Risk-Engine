@@ -1,12 +1,21 @@
+//server.h
+//
+//This file declares the RiskServer class, which manages the network operations,
+//client connections, and message handling for the risk management server.
+//
+//Author: Nikas Zilinskis
+//Date: 19/06/2024
+
 #ifndef SERVER_H_
 #define SERVER_H_
 
-#include "state.h"
+#include <cstring>
+#include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <unistd.h>
-#include <cstring>
+
+#include "state.h"
 
 class RiskServer {
 public:
@@ -28,4 +37,4 @@ private:
     void send_response(int client_socket, const OrderResponse& response);
 };
 
-#endif // SERVER_H_
+#endif 

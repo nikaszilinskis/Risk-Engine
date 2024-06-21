@@ -1,6 +1,16 @@
+//state.cpp
+//
+//This file defines the State class, which manages the state of each
+//client's orders and trades, and handles the calculation of the hypothetical
+//worst net position.
+//
+//Author: Nikas Zilinskis
+//Date: 19/06/2024
+
 #include "state.h"
-#include <algorithm> // For std::find_if
-#include <iostream>  // For printing state in tests
+
+#include <algorithm> //For std::find_if
+#include <iostream>  //For printing state in tests
 
 bool State::add_order_if_accepted(const NewOrder& order) {
     int64_t buy_side, sell_side;
@@ -14,8 +24,8 @@ bool State::add_order_if_accepted(const NewOrder& order) {
         }
         return true;
     }
-    
-    // Add the instrument state if it doesn't exist to avoid out_of_range errors
+
+    //Add the instrument state if it doesn't exist to avoid out_of_range errors
     if (instrument_states_.find(order.instrument_id) == instrument_states_.end()) {
         instrument_states_[order.instrument_id] = InstrumentState();
     }
@@ -49,7 +59,6 @@ bool State::delete_order(const DeleteOrder& order) {
     return false;
 }
 
-
 bool State::modify_order_if_accepted(const ModifyOrderQty& order) {
     for (auto& [instrument_id, state] : instrument_states_) {
         auto it = find_order(state, order.order_id);
@@ -58,21 +67,21 @@ bool State::modify_order_if_accepted(const ModifyOrderQty& order) {
             int64_t new_qty = order.new_qty;
             char side = it->side;
 
-            // Temporarily update the buy/sell quantities
+            //Temporarily update the buy/sell quantities
             if (side == 'B') {
                 state.buy_qty = state.buy_qty - original_qty + new_qty;
             } else if (side == 'S') {
                 state.sell_qty = state.sell_qty - original_qty + new_qty;
             }
 
-            // Calculate hypothetical worst positions
+            //Calculate hypothetical worst positions
             int64_t buy_side = calculate_hypothetical_worst_buy_position(instrument_id);
             int64_t sell_side = calculate_hypothetical_worst_sell_position(instrument_id);
 
-            // Check thresholds
+            //Check thresholds
             if ((side == 'B' && buy_side > BUY_THRESHOLD) || 
                 (side == 'S' && sell_side > SELL_THRESHOLD)) {
-                // Revert the changes if thresholds are exceeded
+                //Revert the changes if thresholds are exceeded
                 if (side == 'B') {
                     state.buy_qty = state.buy_qty + original_qty - new_qty;
                 } else if (side == 'S') {
@@ -81,7 +90,7 @@ bool State::modify_order_if_accepted(const ModifyOrderQty& order) {
                 return false;
             }
 
-            // Apply the modification
+            //Apply the modification
             it->order_qty = new_qty;
             return true;
         }
@@ -107,7 +116,7 @@ int64_t State::calculate_hypothetical_worst_sell_position(uint64_t instrument_id
 bool State::simulate_add_order(const NewOrder& order, int64_t& buy_side, int64_t& sell_side) const {
     auto it = instrument_states_.find(order.instrument_id);
     if (it == instrument_states_.end()) {
-        // Create a default InstrumentState if it does not exist
+        //Create a default InstrumentState if it does not exist
         InstrumentState instrument_state;
         if (order.side == 'B') {
             instrument_state.buy_qty += order.order_qty;
@@ -150,7 +159,7 @@ std::vector<State::Order>::iterator State::find_order(InstrumentState& state, ui
 void State::print_instrument_state(uint64_t instrument_id) const {
     auto it = instrument_states_.find(instrument_id);
     if (it == instrument_states_.end()) {
-        std::cout << "Instrument ID: " << instrument_id << " not found." << std::endl;
+        std::cout << "Instrument ID: " << instrument_id << " not found.\n";
         return;
     }
 

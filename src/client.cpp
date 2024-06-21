@@ -1,9 +1,9 @@
-// client.cpp
+//client.cpp
 //
-// This file implements a simple client class for testing the RiskServer.
+//This file implements a simple client class for testing the RiskServer.
 //
-// Author: Nikas Zilinskis
-// Date: 18/06/2024
+//Author: Nikas Zilinskis
+//Date: 19/06/2024
 
 #include "client.h"
 #include <iostream>
@@ -24,7 +24,7 @@ Client::~Client() {
 bool Client::connect_to_server() {
     server_socket_ = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket_ == -1) {
-        std::cerr << "Can't create a socket!" << std::endl;
+        std::cerr << "Can't create a socket!\n";
         return false;
     }
 
@@ -33,7 +33,7 @@ bool Client::connect_to_server() {
     inet_pton(AF_INET, server_ip_.c_str(), &server_addr_.sin_addr);
 
     if (connect(server_socket_, (sockaddr*)&server_addr_, sizeof(server_addr_)) == -1) {
-        std::cerr << "Can't connect to server!" << std::endl;
+        std::cerr << "Can't connect to server!\n";
         close(server_socket_);
         server_socket_ = -1;
         return false;
@@ -44,12 +44,12 @@ bool Client::connect_to_server() {
 
 bool Client::send_message(const char* message, size_t size) {
     if (server_socket_ == -1) {
-        std::cerr << "No connection to server!" << std::endl;
+        std::cerr << "No connection to server!\n";
         return false;
     }
 
     if (send(server_socket_, message, size, 0) == -1) {
-        std::cerr << "Failed to send message!" << std::endl;
+        std::cerr << "Failed to send message!\n";
         return false;
     }
 
@@ -58,13 +58,13 @@ bool Client::send_message(const char* message, size_t size) {
 
 bool Client::receive_response(char* buffer, size_t size) {
     if (server_socket_ == -1) {
-        std::cerr << "No connection to server!" << std::endl;
+        std::cerr << "No connection to server!\n";
         return false;
     }
 
     int bytes_received = recv(server_socket_, buffer, size, 0);
     if (bytes_received == -1) {
-        std::cerr << "Error in recv()." << std::endl;
+        std::cerr << "Error in recv().\n";
         return false;
     }
 
