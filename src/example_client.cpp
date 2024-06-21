@@ -56,6 +56,23 @@ void send_orders() {
             std::cout << "Order rejected." << std::endl;
         }
     }
+
+    // Send a modify order
+    ModifyOrderQty modify_order = {ModifyOrderQty::MESSAGE_TYPE, 2, 20};
+    Header modify_header = {1, sizeof(modify_order), 3, 0};
+    memcpy(buffer, &modify_header, sizeof(modify_header));
+    memcpy(buffer + sizeof(modify_header), &modify_order, sizeof(modify_order));
+    order_client.send_message(buffer, sizeof(modify_header) + sizeof(modify_order));
+
+    if (order_client.receive_response(response_buffer, sizeof(response_buffer))) {
+        OrderResponse response;
+        memcpy(&response, response_buffer, sizeof(OrderResponse));
+        if (response.stat == OrderResponse::Status::ACCEPTED) {
+            std::cout << "Modify order accepted." << std::endl;
+        } else {
+            std::cout << "Modify order rejected." << std::endl;
+        }
+    }
 }
 
 int main() {

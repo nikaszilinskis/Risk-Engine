@@ -17,10 +17,10 @@ public:
     bool add_order_if_accepted(const NewOrder& order);
 
     // Deletes an order from the state
-    void delete_order(const DeleteOrder& order);
+    bool delete_order(const DeleteOrder& order);
 
     // Modifies an existing order's quantity
-    void modify_order_qty(const ModifyOrderQty& order);
+    bool modify_order_if_accepted(const ModifyOrderQty& order);
 
     // Processes a trade
     void process_trade(const Trade& trade);
@@ -34,6 +34,8 @@ public:
     // Prints the state of the instrument
     void print_instrument_state(uint64_t instrument_id) const;
     std::optional<uint64_t> find_instrument_id_by_order(uint64_t order_id) const; 
+
+    void reset();
 
 private:
     struct Order {

@@ -33,43 +33,60 @@ std::optional<uint64_t> State::find_instrument_id_by_order(uint64_t order_id) co
     return std::nullopt;
 }
 
-void State::delete_order(const DeleteOrder& order) {
-    bool order_found = false;
+bool State::delete_order(const DeleteOrder& order) {
     for (auto& [instrument_id, state] : instrument_states_) {
         auto it = find_order(state, order.order_id);
         if (it != state.orders.end()) {
-            order_found = true;
             if (it->side == 'B') {
                 state.buy_qty -= it->order_qty;
             } else if (it->side == 'S') {
                 state.sell_qty -= it->order_qty;
             }
             state.orders.erase(it);
-            std::cout << "Processed Delete Order: Order ID " << order.order_id << std::endl;
-            print_instrument_state(instrument_id); // Use instrument_id, not order_id
-            break;
+            return true;
         }
     }
-
-    if (!order_found) {
-        std::cerr << "Order ID: " << order.order_id << " not found for deletion." << std::endl;
-    }
+    return false;
 }
 
 
-void State::modify_order_qty(const ModifyOrderQty& order) {
+bool State::modify_order_if_accepted(const ModifyOrderQty& order) {
     for (auto& [instrument_id, state] : instrument_states_) {
         auto it = find_order(state, order.order_id);
         if (it != state.orders.end()) {
-            if (it->side == 'B') {
-                state.buy_qty = state.buy_qty - it->order_qty + order.new_qty;
-            } else if (it->side == 'S') {
-                state.sell_qty = state.sell_qty - it->order_qty + order.new_qty;
+            int64_t original_qty = it->order_qty;
+            int64_t new_qty = order.new_qty;
+            char side = it->side;
+
+            // Temporarily update the buy/sell quantities
+            if (side == 'B') {
+                state.buy_qty = state.buy_qty - original_qty + new_qty;
+            } else if (side == 'S') {
+                state.sell_qty = state.sell_qty - original_qty + new_qty;
             }
-            it->order_qty = order.new_qty;
-            break;
+
+            // Calculate hypothetical worst positions
+            int64_t buy_side = calculate_hypothetical_worst_buy_position(instrument_id);
+            int64_t sell_side = calculate_hypothetical_worst_sell_position(instrument_id);
+
+            // Check thresholds
+            if ((side == 'B' && buy_side > BUY_THRESHOLD) || 
+                (side == 'S' && sell_side > SELL_THRESHOLD)) {
+                // Revert the changes if thresholds are exceeded
+                if (side == 'B') {
+                    state.buy_qty = state.buy_qty + original_qty - new_qty;
+                } else if (side == 'S') {
+                    state.sell_qty = state.sell_qty + original_qty - new_qty;
+                }
+                return false;
+            }
+
+            // Apply the modification
+            it->order_qty = new_qty;
+            return true;
         }
     }
+    return false;
 }
 
 void State::process_trade(const Trade& trade) {
@@ -147,4 +164,8 @@ void State::print_instrument_state(uint64_t instrument_id) const {
     std::cout << "Sell Qty: " << state.sell_qty << "\n";
     std::cout << "Hypothetical Worst Buy Position: " << buy_side << "\n";
     std::cout << "Hypothetical Worst Sell Position: " << sell_side << "\n\n";
+}
+
+void State::reset() {
+    instrument_states_.clear();
 }

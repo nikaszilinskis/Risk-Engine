@@ -92,12 +92,42 @@ void send_orders() {
     memcpy(buffer + sizeof(trade_header), &trade, sizeof(trade));
     trade_client.send_message(buffer, sizeof(trade_header) + sizeof(trade));
 
+    // Wait for trade processing
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
     // Delete Order: ID 3, Instrument: Other Stock
     DeleteOrder delete_order = {DeleteOrder::MESSAGE_TYPE, 3};
     Header delete_header = {1, sizeof(delete_order), 1, 0};
     memcpy(buffer, &delete_header, sizeof(delete_header));
     memcpy(buffer + sizeof(delete_header), &delete_order, sizeof(delete_order));
     order_client.send_message(buffer, sizeof(delete_header) + sizeof(delete_order));
+
+    if (order_client.receive_response(response_buffer, sizeof(response_buffer))) {
+        OrderResponse response;
+        memcpy(&response, response_buffer, sizeof(OrderResponse));
+        if (response.stat == OrderResponse::Status::ACCEPTED) {
+            std::cout << "Delete order accepted." << std::endl;
+        } else {
+            std::cout << "Delete order rejected." << std::endl;
+        }
+    }
+
+    //New Order: ID 3, Instrument: Other Stock, Buy 4 units at 1.5
+    NewOrder new_order5 = {NewOrder::MESSAGE_TYPE, 2, 3, 15, 150, 'B'};
+    Header header5 = {1, sizeof(new_order5), 3, 0};
+    memcpy(buffer, &header5, sizeof(header5));
+    memcpy(buffer + sizeof(header5), &new_order5, sizeof(new_order5));
+    order_client.send_message(buffer, sizeof(header5) + sizeof(new_order5));
+
+    if (order_client.receive_response(response_buffer, sizeof(response_buffer))) {
+        OrderResponse response;
+        memcpy(&response, response_buffer, sizeof(OrderResponse));
+        if (response.stat == OrderResponse::Status::ACCEPTED) {
+            std::cout << "Order accepted." << std::endl;
+        } else {
+            std::cout << "Order rejected." << std::endl;
+        }
+    }
 }
 
 int main() {

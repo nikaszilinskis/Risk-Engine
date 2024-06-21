@@ -10,11 +10,11 @@
 
 class RiskServer {
 public:
-    RiskServer(int max_buy_position, int max_sell_position)
-        : state_(max_buy_position, max_sell_position) {}
+    RiskServer(int max_buy_position, int max_sell_position);
 
     bool init();
     void run();
+    void clear_screen();
 
 private:
     State state_;

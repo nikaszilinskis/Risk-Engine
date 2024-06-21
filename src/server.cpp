@@ -1,17 +1,13 @@
-// server.cpp
-//
-// This file implements the RiskServer class, which manages the network operations,
-// client connections, and message handling for the risk management server.
-//
-// Author: Nikas Zilinskis
-// Date: 18/06/2024
-
 #include "server.h"
 #include <iostream>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <cstring>
 #include <thread>
+
+// RiskServer constructor definition
+RiskServer::RiskServer(int max_buy_position, int max_sell_position)
+    : state_(max_buy_position, max_sell_position) {}
 
 bool RiskServer::init() {
     if (!setup_socket(order_socket_, 55555)) {
@@ -32,6 +28,7 @@ void RiskServer::run() {
     FD_SET(trade_socket_, &master_set);
 
     int max_sd = std::max(order_socket_, trade_socket_);
+    bool first_client_connected = false;
 
     while (true) {
         fd_set working_set = master_set;
@@ -48,6 +45,13 @@ void RiskServer::run() {
                     if (client_socket < 0) {
                         std::cerr << "Accept failed!" << std::endl;
                         continue;
+                    }
+
+                    if (!first_client_connected) {
+                        first_client_connected = true;
+                    } else {
+                        clear_screen();
+                        state_.reset();  // Reset the state for a new client
                     }
 
                     std::thread(&RiskServer::handle_client, this, client_socket, i == trade_socket_).detach();
@@ -150,15 +154,20 @@ void RiskServer::process_message(const char* buffer, size_t size, int client_soc
 
             DeleteOrder delete_order;
             memcpy(&delete_order, message_buffer, sizeof(DeleteOrder));
-            state_.delete_order(delete_order);
-        
 
-            // Find the instrument ID corresponding to this order ID
-            auto instrument_id = state_.find_instrument_id_by_order(delete_order.order_id);
-            if (instrument_id) {
-                state_.print_instrument_state(*instrument_id);
+            bool order_deleted = state_.delete_order(delete_order);
+            send_response(client_socket, {OrderResponse::MESSAGE_TYPE, delete_order.order_id,
+                                          order_deleted ? OrderResponse::Status::ACCEPTED : OrderResponse::Status::REJECTED});
+            std::cout << "Processed Delete Order: Order ID " << delete_order.order_id << ", Status " 
+                      << (order_deleted ? "Deleted" : "Not Found") << std::endl;
+
+            if (order_deleted) {
+                auto instrument_id = state_.find_instrument_id_by_order(delete_order.order_id);
+                if (instrument_id.has_value()) {
+                    state_.print_instrument_state(*instrument_id);
+                }
             }
-        } 
+        }
         
         else if (message_type == ModifyOrderQty::MESSAGE_TYPE) {
             if (message_size < sizeof(ModifyOrderQty)) {
@@ -168,15 +177,25 @@ void RiskServer::process_message(const char* buffer, size_t size, int client_soc
 
             ModifyOrderQty modify_order_qty;
             memcpy(&modify_order_qty, message_buffer, sizeof(ModifyOrderQty));
-            state_.modify_order_qty(modify_order_qty);
-            std::cout << "Processed Modify Order Quantity: Order ID " << modify_order_qty.order_id
-                      << ", New Quantity " << modify_order_qty.new_qty << std::endl;
 
-            // Find the instrument ID corresponding to this order ID
-            auto instrument_id = state_.find_instrument_id_by_order(modify_order_qty.order_id);
-            if (instrument_id) {
-                state_.print_instrument_state(*instrument_id);
+            bool modify_accepted = state_.modify_order_if_accepted(modify_order_qty);
+            send_response(client_socket, {OrderResponse::MESSAGE_TYPE, modify_order_qty.order_id,
+                                          modify_accepted ? OrderResponse::Status::ACCEPTED : OrderResponse::Status::REJECTED});
+
+            std::cout << "Processed Modify Order Quantity: Order ID " << modify_order_qty.order_id
+                      << ", New Quantity " << modify_order_qty.new_qty << ", Status " 
+                      << (modify_accepted ? "Accepted" : "Rejected") << std::endl;
+
+            if (modify_accepted) {
+                auto instrument_id = state_.find_instrument_id_by_order(modify_order_qty.order_id);
+                if (instrument_id.has_value()) {
+                    state_.print_instrument_state(*instrument_id);
+                } else {
+                    std::cout << "Instrument ID for Order ID " << modify_order_qty.order_id << " not found." << std::endl;
+                }
             }
+
+
         } else {
             std::cerr << "Unknown message type: " << message_type << std::endl;
         }
@@ -187,4 +206,9 @@ void RiskServer::send_response(int client_socket, const OrderResponse& response)
     char buffer[sizeof(OrderResponse)];
     memcpy(buffer, &response, sizeof(OrderResponse));
     send(client_socket, buffer, sizeof(OrderResponse), 0);
+}
+
+void RiskServer::clear_screen() {
+    // Clearing the screen using ANSI escape codes
+    std::cout << "\n \n \n";
 }
