@@ -140,7 +140,9 @@ void RiskServer::process_message(const char* buffer, size_t size, int client_soc
                       << ", Side " << (new_order.side == 'B' ? "Buy" : "Sell") 
                       << ", Status " << (order_accepted ? "Accepted" : "Rejected") << std::endl;
             state_.print_instrument_state(new_order.instrument_id);
-        } else if (message_type == DeleteOrder::MESSAGE_TYPE) {
+        } 
+        
+        else if (message_type == DeleteOrder::MESSAGE_TYPE) {
             if (message_size < sizeof(DeleteOrder)) {
                 std::cerr << "Invalid delete order message size" << std::endl;
                 return;
@@ -156,7 +158,9 @@ void RiskServer::process_message(const char* buffer, size_t size, int client_soc
             if (instrument_id) {
                 state_.print_instrument_state(*instrument_id);
             }
-        } else if (message_type == ModifyOrderQty::MESSAGE_TYPE) {
+        } 
+        
+        else if (message_type == ModifyOrderQty::MESSAGE_TYPE) {
             if (message_size < sizeof(ModifyOrderQty)) {
                 std::cerr << "Invalid modify order quantity message size" << std::endl;
                 return;
