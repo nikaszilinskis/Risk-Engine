@@ -25,6 +25,7 @@ Risk-Engine/
 ├── src/
 │   ├── client.cpp
 │   ├── example_client.cpp
+│   ├── example_client_2.cpp
 │   ├── main.cpp
 │   ├── server.cpp
 │   ├── state.cpp
@@ -84,10 +85,37 @@ For example, to set the maximum buy position to 25 and the maximum sell position
 
 ## Running the Client
 
-You can use the provided example client to send orders and trades to the server. To run the example client, use:
+You can use the provided example clients to send orders and trades to the server. 
+
+The first example client performs the following set of order commands on the server:
+
+1. Sends a new order
+2. Adds another new order
+3. Receives a trade confirmation from the exchange
+4. Sends another new order
+5. Modifies an order
+
+To run the example client, use:
 
 ```sh
-./ExampleClient
+./ExampleClient 
+```
+
+The second example client performs the following set of order commands on the server:
+
+1. Sends a new order
+2. Adds another new order
+3. Adds another new order
+4. Adds another new order
+5. Receives a trade confirmation from the exchange
+4. Deletes a previous order
+5. Modifies an order
+6. Sends a new order
+
+To run the example client, use:
+
+```sh
+./ExampleClient2
 ```
 
 ## Testing
